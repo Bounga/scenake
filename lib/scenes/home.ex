@@ -1,28 +1,34 @@
 defmodule Scenake.Scene.Home do
   use Scenic.Scene
-
   alias Scenic.Graph
+  import Scenic.Primitives, only: [text: 3]
 
-  import Scenic.Primitives
-  # import Scenic.Components
+  # Constants
+  @graph Graph.build(font: :roboto, font_size: 36)
+  @tile_size 32
 
-  @note """
-    This is a very simple starter application.
+  # Initialize the game scene
+  def init(_arg, opts) do
+    viewport = opts[:viewport]
 
-    If you want a more full-on example, please start from:
+    # The entire game state will be held here
+    state = %{
+      viewport: viewport,
+      graph: @graph,
+      score: 0,
+    }
 
-    mix scenic.new.example
-  """
+    # Update the graph and push it to be rendered
+    state.graph
+    |> draw_score(state.score)
+    |> push_graph()
 
-  @graph Graph.build(font: :roboto, font_size: 24)
-  |> text(@note, translate: {20, 60})
+    {:ok, state}
+  end
 
-  # ============================================================================
-  # setup
-
-  # --------------------------------------------------------
-  def init(_, _) do
-    push_graph( @graph )
-    {:ok, @graph}
+  # Draw the score HUD
+  defp draw_score(graph, score) do
+    graph
+    |> text("Score: #{score}", fill: :white, translate: {@tile_size, @tile_size})
   end
 end
