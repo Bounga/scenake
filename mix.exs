@@ -24,7 +24,7 @@ defmodule Scenake.MixProject do
   defp deps do
     [
       {:scenic, "~> 0.9"},
-      {:scenic_driver_glfw, "~> 0.9"},
+      {:scenic_driver_glfw, "~> 0.9"}
     ]
   end
 end
