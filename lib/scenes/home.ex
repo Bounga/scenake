@@ -11,6 +11,7 @@ defmodule Scenake.Scene.Home do
   @tile_radius 8
   @frame_ms 192
   @pellet_score 100
+  @game_over_scene Scenake.Scene.GameOver
 
   # Initialize the game scene
   def init(_arg, opts) do
@@ -146,6 +147,7 @@ defmodule Scenake.Scene.Home do
     state
     |> put_in([:objects, :snake, :body], new_body)
     |> maybe_eat_pellet(new_head_pos)
+    |> maybe_die()
   end
 
   defp move(%{tile_width: w, tile_height: h}, {pos_x, pos_y}, {vec_x, vec_y}) do
@@ -179,6 +181,16 @@ defmodule Scenake.Scene.Home do
     if coords in snake,
       do: randomize_pellet(state),
       else: put_in(state, [:objects, :pellet], coords)
+  end
+
+  # oh no
+  defp maybe_die(state = %{viewport: vp, objects: %{snake: %{body: snake}}, score: score}) do
+    # If ANY duplicates were removed, this means we overlapped at least once
+    if length(Enum.uniq(snake)) < length(snake) do
+      ViewPort.set_root(vp, {@game_over_scene, score})
+    end
+
+    state
   end
 
   # Increments the player's score.
