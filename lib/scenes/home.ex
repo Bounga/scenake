@@ -10,6 +10,7 @@ defmodule Scenake.Scene.Home do
   @snake_starting_size 5
   @tile_radius 8
   @frame_ms 192
+  @pellet_score 100
 
   # Initialize the game scene
   def init(_arg, opts) do
@@ -89,7 +90,7 @@ defmodule Scenake.Scene.Home do
     {old_x, old_y} = state.objects.snake.direction
 
     # Prevent going backwards and crashing instantly
-    if (direction in [{-old_x, 0}, {0, -old_y}]) do
+    if direction in [{-old_x, 0}, {0, -old_y}] do
       state
     else
       put_in(state, [:objects, :snake, :direction], direction)
@@ -142,10 +143,51 @@ defmodule Scenake.Scene.Home do
 
     new_body = Enum.take([new_head_pos | snake.body], snake.size)
 
-    put_in(state, [:objects, :snake, :body], new_body)
+    state
+    |> put_in([:objects, :snake, :body], new_body)
+    |> maybe_eat_pellet(new_head_pos)
   end
 
   defp move(%{tile_width: w, tile_height: h}, {pos_x, pos_y}, {vec_x, vec_y}) do
     {rem(pos_x + vec_x + w, w), rem(pos_y + vec_y + h, h)}
+  end
+
+  # We're on top of a pellet! :)
+  defp maybe_eat_pellet(state = %{objects: %{pellet: pellet_coords}}, snake_head_coords)
+       when pellet_coords == snake_head_coords do
+    state
+    |> randomize_pellet()
+    |> add_score(@pellet_score)
+    |> grow_snake()
+  end
+
+  # No pellet in sight. :(
+  defp maybe_eat_pellet(state, _), do: state
+
+  # Place the pellet somewhere in the map. It should not be on top of the snake.
+  defp randomize_pellet(state = %{tile_width: w, tile_height: h}) do
+    pellet_coords = {
+      Enum.random(0..(w - 1)),
+      Enum.random(0..(h - 1))
+    }
+
+    validate_pellet_coords(state, pellet_coords)
+  end
+
+  # Keep trying until we get a valid position
+  defp validate_pellet_coords(state = %{objects: %{snake: %{body: snake}}}, coords) do
+    if coords in snake,
+      do: randomize_pellet(state),
+      else: put_in(state, [:objects, :pellet], coords)
+  end
+
+  # Increments the player's score.
+  defp add_score(state, amount) do
+    update_in(state, [:score], &(&1 + amount))
+  end
+
+  # Increments the snake size.
+  defp grow_snake(state) do
+    update_in(state, [:objects, :snake, :size], &(&1 + 1))
   end
 end
