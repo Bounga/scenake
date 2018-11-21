@@ -27,6 +27,12 @@ defmodule Scenake.Scene.Home do
       trunc(vp_tile_height / 2)
     }
 
+    # Pellet starts a little bit of center
+    pellet_start_coords = {
+      vp_tile_width - 2,
+      trunc(vp_tile_height / 2)
+    }
+
     # Game loop timer
     {:ok, timer} = :timer.send_interval(@frame_ms, :frame)
 
@@ -41,7 +47,8 @@ defmodule Scenake.Scene.Home do
       frame_timer: timer,
       # Game objects
       objects: %{
-        snake: %{body: [snake_start_coords], size: @snake_starting_size, direction: {1, 0}}
+        snake: %{body: [snake_start_coords], size: @snake_starting_size, direction: {1, 0}},
+        pellet: pellet_start_coords
       }
     }
 
@@ -115,6 +122,11 @@ defmodule Scenake.Scene.Home do
     Enum.reduce(snake, graph, fn {x, y}, graph ->
       draw_tile(graph, x, y, fill: :lime)
     end)
+  end
+
+  # Pellet is simply a coordinate pair
+  defp draw_object(graph, :pellet, {pellet_x, pellet_y}) do
+    draw_tile(graph, pellet_x, pellet_y, fill: :yellow, id: :pellet)
   end
 
   # Draw tiles as rounded rectangles to look nice
