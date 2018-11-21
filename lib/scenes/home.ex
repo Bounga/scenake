@@ -58,6 +58,37 @@ defmodule Scenake.Scene.Home do
     {:noreply, %{state | frame_count: frame_count + 1}}
   end
 
+  # Keyboard controls
+  def handle_input({:key, {"left", :press, _}}, _context, state) do
+    {:noreply, update_snake_direction(state, {-1, 0})}
+  end
+
+  def handle_input({:key, {"right", :press, _}}, _context, state) do
+    {:noreply, update_snake_direction(state, {1, 0})}
+  end
+
+  def handle_input({:key, {"up", :press, _}}, _context, state) do
+    {:noreply, update_snake_direction(state, {0, -1})}
+  end
+
+  def handle_input({:key, {"down", :press, _}}, _context, state) do
+    {:noreply, update_snake_direction(state, {0, 1})}
+  end
+
+  def handle_input(_input, _context, state), do: {:noreply, state}
+
+  # Change the snake's current direction.
+  defp update_snake_direction(state, direction) do
+    {old_x, old_y} = state.objects.snake.direction
+
+    # Prevent going backwards and crashing instantly
+    if (direction in [{-old_x, 0}, {0, -old_y}]) do
+      state
+    else
+      put_in(state, [:objects, :snake, :direction], direction)
+    end
+  end
+
   # Update the graph and push it to be rendered
   defp update_graph(state) do
     state.graph
